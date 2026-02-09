@@ -89,6 +89,17 @@ if (g_session.current_avatar == (avatar *)g_session.start_loc) {
 }
 ```
 
-This condition checks whether the memory used for the new ``` start_loc ``` object overlaps with the memory that previously belonged to the avatar. This can only happen if the freed avatar memory is reused by the allocator and both pointers end up pointing to the same heap address.
-Once KLEE reaches this block, it reports a use-after-free memory error when the stale pointer is accessed. Because this error only occurs after the pointer overlap is confirmed, it shows that the issue is not accidental — the program is genuinely reusing freed memory and accessing it through the wrong type.
-This confirms a real type confusion caused by heap reuse, not just a generic use-after-free.
+This condition checks whether the memory used for the new `start_loc` object overlaps with the memory that previously belonged to the `avatar`.
+
+This can only happen if:
+
+- the avatar memory was freed, and  
+- the allocator later reused that same memory for the `start_loc` object, and  
+- both pointers end up pointing to the same heap address.
+
+Once KLEE reaches this block, it reports a **use-after-free** memory error when the stale pointer is accessed.
+
+Because this error only happens after the pointer overlap is confirmed, it shows that the issue is not accidental. The program is actually reusing freed memory and then accessing it through the wrong type.
+
+This confirms a real **type confusion caused by heap reuse**, not just a generic use-after-free.
+
